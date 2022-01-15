@@ -1,0 +1,42 @@
+version: "3.8"
+services:
+  mysql:
+    container_name: weather
+    image: mysql/mysql-server:5.7
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: weather
+      MYSQL_USER: test
+      MYSQL_PASSWORD: root
+      MYSQL_ROOT_HOST: '%'
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d
+  cache:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+    volumes:
+      - cache:/data
+volumes:
+  cache:
+    driver: local
+#  splunkenterprise:
+#    #build: .
+#    hostname: splunkenterprise
+#    image: splunk/splunk:7.0.3
+#    environment:
+#      SPLUNK_START_ARGS: --accept-license
+#      SPLUNK_ENABLE_LISTEN: 9997
+#      SPLUNK_ADD: tcp 1514
+#    volumes:
+#      - opt-splunk-etc:/opt/splunk/etc
+#      - opt-splunk-var:/opt/splunk/var
+#    ports:
+#      - "8000:8000"
+#      - "9997:9997"
+#      - "8088:8088"
+#      - "1514:1514"

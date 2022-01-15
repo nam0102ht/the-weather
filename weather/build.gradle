@@ -1,5 +1,6 @@
 plugins {
 	id 'org.springframework.boot' version '2.4.3'
+	id "com.avast.gradle.docker-compose" version "0.14.13"
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 	id 'java'
 }
@@ -13,12 +14,73 @@ repositories {
 }
 
 dependencies {
+	compileOnly 'org.projectlombok:lombok:1.18.22'
+	annotationProcessor 'org.projectlombok:lombok:1.18.22'
+
+	// https://mvnrepository.com/artifact/io.github.resilience4j/resilience4j-circuitbreaker
+	// https://mvnrepository.com/artifact/io.github.resilience4j/resilience4j-spring-boot2
+	implementation 'io.github.resilience4j:resilience4j-spring-boot2:1.7.1'
+	implementation 'io.github.resilience4j:resilience4j-circuitbreaker:1.7.1'
+	implementation 'io.github.resilience4j:resilience4j-ratelimiter:1.7.1'
+	implementation 'io.github.resilience4j:resilience4j-timelimiter:1.7.1'
+	// https://mvnrepository.com/artifact/mysql/mysql-connector-java
+	implementation 'mysql:mysql-connector-java:8.0.27'
+	// https://mvnrepository.com/artifact/ch.qos.logback/logback-core
+	implementation 'ch.qos.logback:logback-core:1.2.10'
+	// https://mvnrepository.com/artifact/org.slf4j/slf4j-api
+	implementation 'org.slf4j:slf4j-api:1.7.32'
+	// https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
+	testImplementation 'ch.qos.logback:logback-classic:1.2.10'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-cache'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation("junit:junit:4.12")
+	testImplementation("io.rest-assured:rest-assured:3.0.3")
+	testImplementation("org.assertj:assertj-core")
+	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+	testImplementation 'org.junit.jupiter:junit-jupiter-params:5.7.0'
+	testImplementation 'org.assertj:assertj-core:3.17.2'
+	testImplementation 'org.mockito:mockito-core:3.5.13'
+
+	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
 	runtimeOnly 'mysql:mysql-connector-java'
+	testAnnotationProcessor 'org.projectlombok:lombok:1.18.22'
+}
+
+sourceSets {
+	main {
+		java {
+			srcDir('src/main/java')
+		}
+		resources {
+			srcDir('src/main/resources')
+		}
+	}
+	test {
+		java {
+			srcDir('src/test/java')
+		}
+		resources {
+			srcDir('src/test/resources')
+		}
+	}
 }
 
 test {
 	useJUnitPlatform()
+}
+
+dockerCompose {
+	useComposeFiles = ["src/main/docker/docker-compose.yml"]
+	dockerComposeStopTimeout = java.time.Duration.ofSeconds(120)
+}
+
+task startTestEnvironment {
+	dependsOn += ["composeUp"]
+}
+
+task stopTestEnvironment {
+	dependsOn += ["composeDown"]
 }
