@@ -55,7 +55,9 @@ $ ./gradlew test
 ||||
 |Able to ensure existing function is working|As an API contributor, I should be able to make sure my contribution won’t break existing function|Low
 
-###Sequence Diagram
+###Postman document
+we can test all of api by document:
+https://documenter.getpostman.com/view/9719621/UVXjLGdN
 
 ## Weather API Provider
 
