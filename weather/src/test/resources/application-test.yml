@@ -1,5 +1,5 @@
 server:
-  port: 8099
+  port: 8090
 
 downStream:
   url: https://api.openweathermap.org/data/2.5/weather
@@ -31,17 +31,3 @@ resilience4j:
         waitDuration: 3s
         retryExceptions:
           - java.lang.Exception
-
-splunk:
-  username:
-  password:
-  host:
-  port:
-  scheme:
-
-logging:
-  level:
-    org:
-      springframework:
-        boot:
-          autoconfigure: ERROR

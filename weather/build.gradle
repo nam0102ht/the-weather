@@ -3,11 +3,12 @@ plugins {
 	id "com.avast.gradle.docker-compose" version "0.14.13"
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 	id 'java'
+	id 'com.github.kt3k.coveralls' version '2.12.0'
 }
 
 group = 'com.oddle.app'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '1.8'
+sourceCompatibility = '11'
 
 repositories {
 	mavenCentral()
@@ -16,37 +17,37 @@ repositories {
 dependencies {
 	compileOnly 'org.projectlombok:lombok:1.18.22'
 	annotationProcessor 'org.projectlombok:lombok:1.18.22'
-
-	// https://mvnrepository.com/artifact/io.github.resilience4j/resilience4j-circuitbreaker
-	// https://mvnrepository.com/artifact/io.github.resilience4j/resilience4j-spring-boot2
 	implementation 'io.github.resilience4j:resilience4j-spring-boot2:1.7.1'
 	implementation 'io.github.resilience4j:resilience4j-circuitbreaker:1.7.1'
 	implementation 'io.github.resilience4j:resilience4j-ratelimiter:1.7.1'
 	implementation 'io.github.resilience4j:resilience4j-timelimiter:1.7.1'
-	// https://mvnrepository.com/artifact/mysql/mysql-connector-java
+	implementation 'org.bouncycastle:bcprov-jdk15on:1.70'
+	testImplementation 'com.github.tomakehurst:wiremock:2.27.2'
 	implementation 'mysql:mysql-connector-java:8.0.27'
-	// https://mvnrepository.com/artifact/ch.qos.logback/logback-core
 	implementation 'ch.qos.logback:logback-core:1.2.10'
-	// https://mvnrepository.com/artifact/org.slf4j/slf4j-api
 	implementation 'org.slf4j:slf4j-api:1.7.32'
-	// https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
 	testImplementation 'ch.qos.logback:logback-classic:1.2.10'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-cache'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation("junit:junit:4.12")
+	testImplementation("junit:junit:4.13.2")
 	testImplementation("io.rest-assured:rest-assured:3.0.3")
 	testImplementation("org.assertj:assertj-core")
-	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
-	testImplementation 'org.junit.jupiter:junit-jupiter-params:5.7.0'
+	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
+	testImplementation 'org.junit.jupiter:junit-jupiter-params:5.7.2'
 	testImplementation 'org.assertj:assertj-core:3.17.2'
 	testImplementation 'org.mockito:mockito-core:3.5.13'
 
-	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
 	runtimeOnly 'mysql:mysql-connector-java'
 	testAnnotationProcessor 'org.projectlombok:lombok:1.18.22'
+	testImplementation 'org.codehaus.groovy:groovy-all:2.4.15'
+	testImplementation 'io.cucumber:cucumber-java:6.10.4'
+	testImplementation 'io.cucumber:cucumber-junit:6.10.4'
+	testImplementation 'io.cucumber:cucumber-spring:6.10.4'
+	testImplementation 'org.apache.qpid:qpid-broker:6.1.4'
 }
 
 sourceSets {
@@ -68,13 +69,24 @@ sourceSets {
 	}
 }
 
+configurations {
+	provided
+	providedRuntime
+	compile.exclude module: "geronimo-servlet_3.0_spec"
+}
+
 test {
 	useJUnitPlatform()
+	include 'unit/**'
 }
 
 dockerCompose {
 	useComposeFiles = ["src/main/docker/docker-compose.yml"]
 	dockerComposeStopTimeout = java.time.Duration.ofSeconds(120)
+}
+
+clean {
+	delete += fileTree('conf').include('*/')
 }
 
 task startTestEnvironment {
@@ -83,4 +95,61 @@ task startTestEnvironment {
 
 task stopTestEnvironment {
 	dependsOn += ["composeDown"]
+}
+
+task componentTest(type: Test, dependsOn: ['testClasses']) {
+	useJUnitPlatform()
+	include 'component/**'
+}
+
+task coverage() {
+	apply {
+		from("coverage.gradle")
+	}
+}
+
+task blackboxTest(type: Test, dependsOn: ['testClasses']) {
+	useJUnit()
+	include 'blackbox/**'
+}
+
+jacocoTestReport {
+	dependsOn test, componentTest
+}
+
+coverage.dependsOn(jacocoTestReport)
+
+rootProject.tasks.named("processResources") {
+	duplicatesStrategy = 'include'
+}
+
+rootProject.tasks.named("processTestResources") {
+	duplicatesStrategy = 'include'
+}
+
+ext {
+	limits = [
+			'branch'     : 4, //minimun branch coverage should be 75
+			'line'       : 2  //minimun line coverage should be 75
+	]
+}
+
+task startApp() {
+
+}
+
+task stopApp() {
+
+}
+
+blackboxTest {
+	dependsOn assemble, startApp
+	doLast {
+		javaexec {
+			main = "io.cucumber.core.cli.Main"
+			classpath = configurations.cucumberRuntime + sourceSets.main.output + sourceSets.test.output
+			// args = ['src/test/resources']
+		}
+	}
+	finalizedBy(stopApp)
 }
