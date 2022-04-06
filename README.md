@@ -1,6 +1,4 @@
-# Oddle Backend Challenge - V2
-
-**Welcome to Oddle Challenge of Radan Nguyen**
+# The weather
 
 ## Table of contents
 * [General info](#general-info)
@@ -38,6 +36,22 @@ $ ./gradlew bootRun
 ```
 $ ./gradlew test
 ```
+
+**ComponentTest:**
+```
+$ ./gradlew componentTest
+```
+
+**BlackboxTest:**
+```
+$ ./gradlew blackboxTest
+```
+
+**Coverage:**
+```
+$ ./gradlew clean coverage
+```
+
 ## User stories
 ###Requirements
 
