@@ -13,7 +13,7 @@
 A simple weather checking API service.
 
 ## Technologies
-* Java 1.8
+* Java 11
 * Spring Boot 2.4.3
 * MySQL 5.7
 * Docker
