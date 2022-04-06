@@ -2,12 +2,12 @@ plugins {
 	id 'org.springframework.boot' version '2.4.3'
 	id "com.avast.gradle.docker-compose" version "0.14.13"
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+	id "ch.kk7.spawn" version "1.0.20180924200750"
 	id 'java'
 	id 'com.github.kt3k.coveralls' version '2.12.0'
 }
 
 group = 'com.oddle.app'
-version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '11'
 
 repositories {
@@ -39,6 +39,8 @@ dependencies {
 	testImplementation 'org.junit.jupiter:junit-jupiter-params:5.7.2'
 	testImplementation 'org.assertj:assertj-core:3.17.2'
 	testImplementation 'org.mockito:mockito-core:3.5.13'
+	implementation 'com.squareup.okhttp:okhttp:2.7.5'
+
 
 	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
 	runtimeOnly 'mysql:mysql-connector-java'
@@ -73,6 +75,9 @@ configurations {
 	provided
 	providedRuntime
 	compile.exclude module: "geronimo-servlet_3.0_spec"
+	cucumberRuntime {
+		extendsFrom testImplementation
+	}
 }
 
 test {
@@ -134,16 +139,16 @@ ext {
 	]
 }
 
-task startApp() {
-
+task startApp(type: SpawnTask,dependsOn: 'assemble') {
+	commandLine "./gradlew", "bootRun"
 }
 
-task stopApp() {
-
+task stopApp(type: KillTask) {
+	kills startApp
 }
 
 blackboxTest {
-	dependsOn assemble, startApp
+	dependsOn startApp
 	doLast {
 		javaexec {
 			main = "io.cucumber.core.cli.Main"

@@ -1,0 +1,13 @@
+server.port: 8099
+
+logging:
+  level:
+    org:
+      springframework:
+        boot:
+          autoconfigure: INFO
+  config: file:/src/test/resources/logback-stub.xml
+
+  spring:
+    profile:
+      active: integration

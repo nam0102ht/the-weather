@@ -1,7 +1,6 @@
 version: "3.8"
 services:
   mysql:
-    container_name: weather
     image: mysql/mysql-server:5.7
     ports:
       - "3306:3306"
@@ -24,19 +23,3 @@ services:
 volumes:
   cache:
     driver: local
-#  splunkenterprise:
-#    #build: .
-#    hostname: splunkenterprise
-#    image: splunk/splunk:7.0.3
-#    environment:
-#      SPLUNK_START_ARGS: --accept-license
-#      SPLUNK_ENABLE_LISTEN: 9997
-#      SPLUNK_ADD: tcp 1514
-#    volumes:
-#      - opt-splunk-etc:/opt/splunk/etc
-#      - opt-splunk-var:/opt/splunk/var
-#    ports:
-#      - "8000:8000"
-#      - "9997:9997"
-#      - "8088:8088"
-#      - "1514:1514"
